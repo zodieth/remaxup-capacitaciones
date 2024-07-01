@@ -1,3 +1,6 @@
+/* eslint-disable jsx-a11y/alt-text */
+"use client";
+
 import React from "react";
 import {
   Page,
@@ -15,15 +18,30 @@ const styles = StyleSheet.create({
   section: {
     flexDirection: "column",
     backgroundColor: "#FFFFFF",
+    paddingTop: 135,
+    paddingBottom: 150,
+    paddingHorizontal: 15,
   },
   text: {
+    margin: 12,
     fontSize: 11,
     paddingTop: 35,
     paddingBottom: 65,
-    paddingHorizontal: 35,
+    paddingHorizontal: 15,
   },
-  image: {
-    width: 529,
+  imageHeader: {
+    position: "absolute",
+    top: 30,
+    left: 0,
+    right: 0,
+    textAlign: "center",
+  },
+  imageFooter: {
+    position: "absolute",
+    bottom: 30,
+    left: 0,
+    right: 0,
+    textAlign: "center",
   },
 });
 
@@ -50,12 +68,14 @@ const PdfGenerator = ({
             <Page size="A4" style={styles.section}>
               <Image
                 fixed
+                style={styles.imageHeader}
                 src="https://res.cloudinary.com/dea89zeui/image/upload/v1712927677/1_gtn9pp.jpg"
               />
-              <View>
-                <Text style={styles.text}>{text}</Text>
-              </View>
+              {/* <View> */}
+              <Text style={styles.text}>{text}</Text>
+              {/* </View> */}
               <Image
+                style={styles.imageFooter}
                 fixed
                 src="https://res.cloudinary.com/dea89zeui/image/upload/v1712927677/2_f8vmhi.jpg"
               />

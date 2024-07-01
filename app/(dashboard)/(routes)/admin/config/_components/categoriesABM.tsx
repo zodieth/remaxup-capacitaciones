@@ -214,7 +214,7 @@ const CategoriesABM = () => {
       </Form>
       {isLoading ? (
         Array.from({ length: 6 }).map((_, index) => (
-          <Skeleton className="h-[3rem] w-[20rem]" />
+          <Skeleton className="h-[3rem] w-[20rem]" key={index} />
         ))
       ) : isSuccess ? (
         <ul className="mt-4">

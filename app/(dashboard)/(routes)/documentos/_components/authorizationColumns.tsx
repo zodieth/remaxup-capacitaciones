@@ -2,12 +2,7 @@
 
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  MoreHorizontal,
-  Eye,
-  Link2,
-} from "lucide-react";
+import { ArrowUpDown, MoreHorizontal, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,11 +11,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { Property } from "@prisma/client";
+import { Document } from "@prisma/client";
 
-export const columns = (
-  onLinkAuthorization: (mlsid: string) => void
-): ColumnDef<Property>[] => [
+export const authorizationColumns: ColumnDef<Document>[] = [
   {
     accessorKey: "title",
     header: ({ column }) => {
@@ -31,14 +24,14 @@ export const columns = (
             column.toggleSorting(column.getIsSorted() === "asc")
           }
         >
-          Propiedad
+          Plantilla
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "address",
+    accessorKey: "documentName",
     header: ({ column }) => {
       return (
         <Button
@@ -47,7 +40,7 @@ export const columns = (
             column.toggleSorting(column.getIsSorted() === "asc")
           }
         >
-          Dirección
+          Nombre
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -56,8 +49,8 @@ export const columns = (
   {
     id: "actions",
     cell: ({ row }) => {
-      const { mlsid } = row.original;
-      const href = `documentos/${mlsid}`;
+      const { id } = row.original;
+      const href = `documentos/autorizacion/${id}`;
 
       return (
         <DropdownMenu>
@@ -74,13 +67,6 @@ export const columns = (
                 Ver
               </DropdownMenuItem>
             </Link>
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => onLinkAuthorization(mlsid)}
-            >
-              <Link2 className="h-4 w-4 mr-2" />
-              Vincular Autorización
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

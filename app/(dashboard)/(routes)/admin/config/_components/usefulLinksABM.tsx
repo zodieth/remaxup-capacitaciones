@@ -193,17 +193,17 @@ const UsefulLinksABM = () => {
     });
   };
 
+  const onCancelEdit = () => {
+    setEditingIndex(null);
+    reset({ title: "", url: "", description: "" });
+  };
+
   const handleDelete = async (index: number) => {
     const linkId = usefulLinks[index].id;
     await api.deleteUsefulLink(linkId);
     setUsefulLinks(prevLinks =>
       prevLinks.filter((_, i) => i !== index)
     );
-  };
-
-  const onCancelEdit = () => {
-    setEditingIndex(null);
-    reset({ title: "", url: "", description: "" });
   };
 
   const onDelete = async () => {

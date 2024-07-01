@@ -29,7 +29,6 @@
     "@hookform/resolvers": "^3.3.1",
     "@mux/mux-node": "^7.3.1",
     "@mux/mux-player-react": "^1.14.2",
-    "@prisma/client": "^5.12.0",
     "@radix-ui/react-alert-dialog": "^1.0.4",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.4",
@@ -37,6 +36,7 @@
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-popover": "^1.0.6",
     "@radix-ui/react-progress": "^1.0.3",
+    "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-separator": "^1.0.3",
     "@radix-ui/react-slot": "^1.0.2",
     "@react-pdf/renderer": "^3.4.2",
@@ -63,7 +63,7 @@
     "fs": "^0.0.1-security",
     "html-to-text": "^9.0.5",
     "lucide-react": "^0.276.0",
-    "next": "13.4.12",
+    "next": "^13.5.6",
     "next-auth": "^4.24.5",
     "pizzip": "^3.1.6",
     "postcss": "8.4.29",
@@ -89,13 +89,15 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "@prisma/client": "^5.15.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/html-to-text": "^9.0.4",
     "@types/node": "^20.11.30",
     "husky": "^8.0.0",
     "lint-staged": "^15.2.2",
+    "npm": "^10.7.0",
     "null-loader": "^4.0.1",
     "prettier": "^3.2.5",
-    "prisma": "^5.12.0"
+    "prisma": "^5.15.1"
   }
 }

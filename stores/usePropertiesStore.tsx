@@ -1,11 +1,12 @@
 import { create } from "zustand";
 import { useEffect } from "react"; // Importa useEffect
 import { PropertydApi } from "@/types/next-auth";
+import { Property } from "@prisma/client";
 
 interface PropertiesState {
-  propiedades: PropertydApi[];
-  setPropiedades: (propiedades: PropertydApi[]) => void;
-  getPropiedadById: (id: string) => PropertydApi | undefined;
+  propiedades: Property[];
+  setPropiedades: (propiedades: Property[]) => void;
+  getPropiedadById: (id: string) => Property | undefined;
 }
 
 const usePropertiesStore = create<PropertiesState>(
@@ -22,7 +23,7 @@ const usePropertiesStore = create<PropertiesState>(
       }
     },
     getPropiedadById: id =>
-      get().propiedades.find(p => p.id === id),
+      get().propiedades.find(p => p.mlsid === id),
   })
 );
 

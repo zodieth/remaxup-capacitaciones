@@ -47,15 +47,40 @@ const api = {
     }
     return response.json();
   },
-  // Asume que tienes endpoints PUT y DELETE implementados
-  // para actualizar y eliminar variables, respectivamente.
+  async updateDocumentVariable(
+    id: string,
+    data: Omit<
+      DocumentVariable,
+      "id" | "createdAt" | "updatedAt"
+    >
+  ): Promise<void> {
+    const response = await fetch(`/api/documentVariable/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      toast.error("Error al actualizar la variable");
+      throw new Error("Error al actualizar la variable");
+    }
+  },
+  async deleteDocumentVariable(id: string): Promise<void> {
+    const response = await fetch(`/api/documentVariable/${id}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      toast.error("Error al eliminar la variable");
+      throw new Error("Error al eliminar la variable");
+    }
+  },
 };
-
 const formSchema = z.object({
   name: z.string().min(1, "Ingrese un nombre"),
   value: z.string().min(1),
   description: z.string().optional(),
-  referenceTo: z.string().optional(),
+  // referenceTo: z.string().optional(),
 });
 
 interface FormValues {
@@ -77,29 +102,34 @@ const DocumentVariablesABM = () => {
   const [documentVariables, setDocumentVariables] = useState<
     DocumentVariable[]
   >([]);
+  const [editingIndex, setEditingIndex] = useState<
+    number | null
+  >(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [variableToDelete, setVariableToDelete] = useState<
+    number | null
+  >(null);
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      value: "",
+      description: "",
+      // referenceTo: "",
+    },
+  });
 
   const {
     register,
     handleSubmit,
     reset,
     watch,
-    setValue,
     formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-  });
+    setValue,
+  } = form;
 
   const name = watch("name");
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      value: "",
-      description: "",
-      referenceTo: "",
-    },
-  });
 
   // when "name" is modified, update value in form for: {name}
   useEffect(() => {
@@ -108,107 +138,170 @@ const DocumentVariablesABM = () => {
 
   useEffect(() => {
     const fetchVariables = async () => {
-      const variables = await api.fetchDocumentVariables();
-      setDocumentVariables(variables);
+      try {
+        const variables = await api.fetchDocumentVariables();
+        setDocumentVariables(variables);
+      } catch (error) {
+        console.error(error);
+      }
     };
     fetchVariables();
   }, []);
 
   const onSubmit: SubmitHandler<FormValues> = async data => {
+    setIsLoading(true);
     try {
-      const newVariable = await api.createDocumentVariable(data);
-      setDocumentVariables(prev => [...prev, newVariable]);
-      toast.success("Variable creada con éxito");
-      reset(); // Resetea el formulario
+      if (editingIndex === null) {
+        const newVariable =
+          await api.createDocumentVariable(data);
+        setDocumentVariables(prev => [...prev, newVariable]);
+        toast.success("Variable creada con éxito");
+      } else {
+        const variableId = documentVariables[editingIndex].id;
+        await api.updateDocumentVariable(variableId, data);
+        const updatedVariables = documentVariables.map(
+          (variable, index) =>
+            index === editingIndex
+              ? { ...variable, ...data }
+              : variable
+        );
+        setDocumentVariables(updatedVariables);
+        setEditingIndex(null);
+        toast.success("Variable actualizada con éxito");
+      }
+      reset({
+        name: "",
+        value: "",
+        description: "",
+        // referenceTo: "",
+      });
     } catch (error) {
       console.error(error);
-      toast.error("Error al crear la variable");
+      toast.error("Error al guardar la variable");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const startEditing = (index: number) => {
+    const variable = documentVariables[index];
+    setEditingIndex(index);
+    reset(variable);
+  };
+
+  const onCancelEdit = () => {
+    setEditingIndex(null);
+    reset({
+      name: "",
+      value: "",
+      description: "",
+      // referenceTo: "",
+    });
+  };
+
+  const handleDelete = async (index: number) => {
+    const variableId = documentVariables[index].id;
+    await api.deleteDocumentVariable(variableId);
+    setDocumentVariables(prev =>
+      prev.filter((_, i) => i !== index)
+    );
+  };
+
+  const onDelete = async () => {
+    setIsLoading(true);
+    try {
+      if (variableToDelete !== null) {
+        await handleDelete(variableToDelete);
+        setVariableToDelete(null);
+        toast.success("Variable eliminada con éxito");
+      }
+    } catch {
+      toast.error("Error al eliminar la variable");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="mt-10 space-y-4 w-[75%] border border-gray-300 rounded-lg p-6 md:w-1/2">
-      <div>
-        <h1 className="text-lg font-semibold mb-4">
-          Administración de Variables de Documento
-        </h1>
-        <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <FormItem>
-              <FormLabel>Nombre</FormLabel>
-              <FormControl>
-                <Input
-                  {...register("name", {
-                    required: "Este campo es obligatorio",
-                  })}
-                />
-              </FormControl>
-              {errors.name && (
-                <FormMessage>{errors.name.message}</FormMessage>
-              )}
-            </FormItem>
-            <FormItem>
-              <FormLabel>Valor</FormLabel>
-              <FormControl>
-                <Input {...register("value")} disabled />
-              </FormControl>
-              {/* {errors.value && (
-                <FormMessage>{errors.value.message}</FormMessage>
-              )} */}
-            </FormItem>
-            <FormItem>
-              <FormLabel>Descripción (opcional)</FormLabel>
-              <FormControl>
-                <Textarea {...register("description")} />
-              </FormControl>
-            </FormItem>
-            <FormItem>
-              <FormLabel>Referencia (opcional)</FormLabel>
-              <FormControl>
-                <Input {...register("referenceTo")} />
-              </FormControl>
-            </FormItem>
-            <Button type="submit" className="mt-4">
-              Crear Variable
+      <h1 className="text-lg font-semibold mb-4">
+        Administración de Variables de Documento
+      </h1>
+      <Form {...form}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <FormItem>
+            <FormLabel>Nombre</FormLabel>
+            <FormControl>
+              <Input {...register("name")} />
+            </FormControl>
+            {errors.name && (
+              <FormMessage>{errors.name.message}</FormMessage>
+            )}
+          </FormItem>
+          <FormItem>
+            <FormLabel>Valor</FormLabel>
+            <FormControl>
+              <Input {...register("value")} disabled />
+            </FormControl>
+          </FormItem>
+          <FormItem>
+            <FormLabel>Descripción (opcional)</FormLabel>
+            <FormControl>
+              <Textarea {...register("description")} />
+            </FormControl>
+          </FormItem>
+          <FormItem>
+            <FormLabel>Referencia (opcional)</FormLabel>
+            <FormControl>
+              <Input {...register("referenceTo")} />
+            </FormControl>
+          </FormItem>
+          <Button type="submit" className="mt-4 mr-3">
+            {editingIndex === null
+              ? "Crear Variable"
+              : "Actualizar Variable"}
+          </Button>
+          {editingIndex !== null && (
+            <Button onClick={() => onCancelEdit()}>
+              Cancelar
             </Button>
-          </form>
-        </Form>
-      </div>
-      {/* Lista de variables existentes */}
+          )}
+        </form>
+      </Form>
       {documentVariables.length === 0 ? (
         <LoadingSpinner />
       ) : (
-        <div className="mt-8">
+        <ul className="mt-4">
           {documentVariables.map((variable, index) => (
-            <div
+            <li
               key={variable.id}
-              className="border-b last:border-b-0"
+              className={`flex justify-between items-center p-1 rounded mt-1 ${index === editingIndex ? "bg-blue-100" : "bg-gray-100"}`}
             >
-              <div className="flex justify-between items-center p-2">
-                <div>
-                  <p>
-                    {variable.name}: {variable.value}
-                  </p>
-                  {variable.description && (
-                    <p className="text-sm text-gray-600">
-                      {variable.description}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  {/* Botones para editar y eliminar */}
-                  {/* TODO: */}
-                  <Button className="mr-2">
-                    <Pencil />
-                  </Button>
-                  <Button>
-                    <Trash />
-                  </Button>
-                </div>
+              <div className="mx-2 text-sm">
+                {" "}
+                {variable.name}: {variable.value}
               </div>
-            </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => startEditing(index)}
+                  className="text-sm"
+                >
+                  <Pencil className="h-4 w-4 " />
+                </Button>
+                <ConfirmModal onConfirm={onDelete}>
+                  <Button
+                    size="sm"
+                    disabled={isLoading}
+                    onClick={() => setVariableToDelete(index)}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </ConfirmModal>
+              </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

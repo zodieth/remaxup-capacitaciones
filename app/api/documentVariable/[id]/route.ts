@@ -1,15 +1,18 @@
+// update and delete documentVariableById
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { isAdmin } from "@/lib/isAdminCheck";
-import { getServerSessionFunc } from "@/app/api/auth/_components/getSessionFunction";
+import { getServerSessionFunc } from "../../auth/_components/getSessionFunction";
 
-// get de documents por propertyId
-export async function GET(
+export async function PUT(
   req: Request,
-  { params }: { params: { documentId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const { userId, role } = await getServerSessionFunc();
+    const id = params.id;
+    const { name, value, description, referenceTo } =
+      await req.json();
 
     if (!userId || !isAdmin(role)) {
       return new NextResponse("Unauthorized", {
@@ -17,28 +20,34 @@ export async function GET(
       });
     }
 
-    const document = await db.document.findFirst({
+    const documentVariable = await db.documentVariable.update({
       where: {
-        id: params.documentId as string,
+        id,
+      },
+      data: {
+        name,
+        value,
+        description,
+        referenceTo,
       },
     });
 
-    return NextResponse.json(document);
+    return NextResponse.json(documentVariable);
   } catch (error) {
-    console.log("[DOCUMENT]", error);
+    console.log("[DOCUMENT VARIABLE]", error);
     return new NextResponse("Internal Error", {
       status: 500,
     });
   }
 }
 
-// delete
 export async function DELETE(
   req: Request,
-  { params }: { params: { documentId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const { userId, role } = await getServerSessionFunc();
+    const id = params.id;
 
     if (!userId || !isAdmin(role)) {
       return new NextResponse("Unauthorized", {
@@ -46,17 +55,17 @@ export async function DELETE(
       });
     }
 
-    await db.document.delete({
+    await db.documentVariable.delete({
       where: {
-        id: params.documentId as string,
+        id,
       },
     });
 
-    return new NextResponse("Document deleted", {
+    return new NextResponse("Deleted", {
       status: 200,
     });
   } catch (error) {
-    console.log("[DOCUMENT]", error);
+    console.log("[DOCUMENT VARIABLE]", error);
     return new NextResponse("Internal Error", {
       status: 500,
     });

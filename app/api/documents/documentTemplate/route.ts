@@ -8,34 +8,58 @@ import { getServerSessionFunc } from "../../auth/_components/getSessionFunction"
 export async function POST(req: Request) {
   try {
     const { userId, role } = await getServerSessionFunc();
-    const { title, description, content, variablesIds } =
+    const { title, description, category, templateBlocks } =
       await req.json();
 
     if (!userId || !isAdmin(role)) {
-      return new NextResponse("Unauthorized", {
-        status: 401,
-      });
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    // Crear la plantilla de documento principal sin bloques
     const documentTemplate = await db.documentTemplate.create({
       data: {
         title,
         description,
-        content,
-        variables: {
-          connect: variablesIds.map((id: string) => {
-            return { id };
-          }),
-        },
+        category,
       },
     });
 
-    return NextResponse.json(documentTemplate);
+    // Crear los bloques de plantilla y asociar las variables correspondientes
+    for (const block of templateBlocks) {
+      const {
+        content,
+        variablesIds,
+        index,
+        isDuplicable,
+        containsProfile,
+        canBeDeleted,
+      } = block;
+
+      await db.templateBlock.create({
+        data: {
+          content,
+          index,
+          isDuplicable,
+          containsProfile,
+          canBeDeleted,
+          documentTemplateId: documentTemplate.id,
+          variables: {
+            connect:
+              variablesIds.length > 0
+                ? variablesIds.map((id: string) => ({ id }))
+                : [],
+          },
+        },
+      });
+    }
+
+    return NextResponse.json({
+      documentTemplate,
+      templateBlocks,
+    });
   } catch (error) {
     console.log("[DOCUMENT TEMPLATE]", error);
-    return new NextResponse("Internal Error", {
-      status: 500,
-    });
+    return new NextResponse("Internal Error", { status: 500 });
   }
 }
 
@@ -44,7 +68,11 @@ export async function GET(req: Request) {
     const documentTemplates = await db.documentTemplate.findMany(
       {
         include: {
-          variables: true, // Incluye las DocumentVariable asociadas
+          templateBlocks: {
+            include: {
+              variables: true, // Incluye las variables de documento asociadas a cada bloque de plantilla
+            },
+          },
         },
       }
     );

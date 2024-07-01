@@ -15,7 +15,11 @@ const TextEditor = ({
   hideControls,
   disableEditing,
 }: {
-  documentVariables: DocumentVariable[];
+  documentVariables: {
+    name: string;
+    variable: string;
+    value: string;
+  }[];
   updateDocumentContent: (html: string) => void;
   content?: string;
   hideControls?: boolean;
@@ -29,6 +33,8 @@ const TextEditor = ({
   useEffect(() => {
     setSelectedVariable(documentVariables[0]?.value);
   }, [documentVariables]);
+
+  console.log(documentVariables);
 
   const documentContent =
     content ||
@@ -104,7 +110,7 @@ const TextEditor = ({
                 >
                   {documentVariables.map(variable => (
                     <option
-                      key={variable.name}
+                      key={variable.variable}
                       value={variable.value}
                     >
                       {variable.name}

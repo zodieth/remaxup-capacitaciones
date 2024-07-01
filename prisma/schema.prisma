@@ -174,34 +174,125 @@ model DocumentVariable {
   name        String
   value       String
   description String? @db.Text
-  referenceTo String? @db.Text
 
-  templates DocumentTemplate[] @relation("DocumentToVariables")
+  templates      DocumentTemplate[] @relation("DocumentToVariables")
+  templateBlocks TemplateBlock[]    @relation("BlockToVariables")
+  profiles       ProfileDocumentVariable[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model DocumentTemplate {
-  id          String  @id @default(uuid())
+  id          String           @id @default(uuid())
   title       String
-  description String? @db.Text
-  content     String  @db.MediumText
+  description String?          @db.Text
+  content     String?          @db.MediumText
+  category    DocumentCategory @default(OTROS)
 
   variables DocumentVariable[] @relation("DocumentToVariables")
+
+  templateBlocks TemplateBlock[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Document {
-  id          String  @id @default(uuid())
+  id          String           @id @unique @default(uuid())
   title       String
-  description String? @db.Text
-  content     String  @db.MediumText
+  documentName String?
+  description String?          @db.Text
+  content     String           @db.MediumText
+  category    DocumentCategory @default(OTROS)
+  createdBy   String           @default("system")
 
-  propertyId String? @db.Text
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [mlsid])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([propertyId])
+}
+
+enum DocumentCategory {
+  AUTORIZACIONES
+  CONTRATOS
+  INFORMES
+  OTROS
+}
+
+model TemplateBlock {
+  id      String @id @default(uuid())
+  content String @db.MediumText
+  isDuplicable Boolean @default(false)
+  containsProfile Boolean @default(false)
+  canBeDeleted Boolean @default(false)
+  index Int
+
+  documentTemplateId String
+  documentTemplate   DocumentTemplate @relation(fields: [documentTemplateId], references: [id])
+
+  variables DocumentVariable[] @relation("BlockToVariables")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([documentTemplateId])
+}
+
+model Property {
+  mlsid   String @id @unique
+  title   String
+  address String
+  photos  String @db.MediumText // Almacena JSON serializado
+  isTemporalProperty Boolean @default(false)
+
+  profiles   Profile[]
+  documents  Document[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {
+  id          String @id @default(uuid())
+  name        String
+  description String? @db.Text
+  category    ProfileCategory @default(OTRO)
+
+  variables   ProfileDocumentVariable[]
+
+  property    Property @relation(fields: [propertyId], references: [mlsid], onDelete: Cascade)
+  propertyId  String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([propertyId])
+}
+
+enum ProfileCategory {
+  VENDEDOR
+  COMPRADOR
+  LOCADOR
+  LOCATARIO
+  OTRO
+}
+
+model ProfileDocumentVariable {
+  id                 String           @id @default(uuid())
+  value              String           @db.Text
+
+  profile            Profile?          @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId          String
+  documentVariable   DocumentVariable @relation(fields: [documentVariableId], references: [id], onDelete: Cascade)
+  documentVariableId String
+
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@unique([profileId, documentVariableId])
+  @@index([documentVariableId])
 }

@@ -385,7 +385,7 @@ export type DocumentTemplate = {
   id: string;
   title: string;
   description?: string;
-  content: string;
+  templateBlocks: TemplateBlock[];
   variables: DocumentVariable[];
   createdAt: Date;
   updatedAt: Date;
@@ -400,3 +400,106 @@ export type DocumentFromTemplate = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type PropertyCreateDTO = {
+  mlsid: string;
+  title: string;
+  address: string;
+  photos: string[];
+  isTemporalProperty?: boolean;
+};
+
+// TemplateBlock Type
+export type TemplateBlock = {
+  id: string;
+  content: string;
+  isDuplicable: boolean;
+  index: number;
+
+  documentTemplateId: string;
+  documentTemplate: DocumentTemplate;
+
+  variables: DocumentVariable[];
+
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// Property Type
+export type Property = {
+  mlsid: string;
+  title: string;
+  address: string;
+  photos: string; // Almacena JSON serializado
+
+  profiles: Profile[];
+  documents: Document[];
+
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// Profile Type
+export type Profile = {
+  id: string;
+  name: string;
+  description?: string;
+
+  variables: ProfileDocumentVariable[];
+
+  property: Property;
+  propertyId: string;
+
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// ProfileDocumentVariable Type
+export type ProfileDocumentVariable = {
+  id: string;
+  value: string;
+
+  profile: Profile;
+  profileId: string;
+  documentVariable: DocumentVariable;
+  documentVariableId: string;
+
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// Assumed existing types for DocumentTemplate, Document, and DocumentVariable
+export type DocumentTemplate = {
+  id: string;
+  title: string;
+  description?: string;
+  content?: string;
+  category: string;
+
+  variables: DocumentVariable[];
+  templateBlocks: TemplateBlock[];
+
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type Document = {
+  id: string;
+  title: string;
+  description?: string;
+  content: string;
+  category: string;
+  createdBy: string;
+
+  propertyId?: string;
+  property?: Property;
+
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type DocumentCategory =
+  | "AUTORIZACIONES"
+  | "CONTRATOS"
+  | "INFORMES"
+  | "OTROS";

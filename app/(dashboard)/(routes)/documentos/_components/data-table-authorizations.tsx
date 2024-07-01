@@ -31,7 +31,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
 }
 
-export function DataTable<TData, TValue>({
+export function DataTableAuthorizations<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
@@ -54,11 +54,14 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  const generateUniqueId = () =>
+    "auth-" + Math.random().toString(36).substr(2, 9);
+
   return (
     <div>
       <div className="flex items-center py-4 justify-between">
         <Input
-          placeholder="Filtrar propiedades..."
+          placeholder="Filtrar documentos..."
           value={
             (table
               .getColumn("title")
@@ -72,12 +75,14 @@ export function DataTable<TData, TValue>({
           className="max-w-sm"
         />
 
-        {/* <Link href="/admin/create">
-          <Button>
+        <Link
+          href={`/documentos/crearAutorizacion/${generateUniqueId()}`}
+        >
+          <Button size="sm">
             <PlusCircle className="h-4 w-4 mr-2" />
             Nueva Autorización
           </Button>
-        </Link> */}
+        </Link>
       </div>
       <div className="rounded-md border">
         <Table>

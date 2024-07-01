@@ -7,7 +7,7 @@ import LoadingSpinner from "@/components/ui/loadingSpinner";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Trash } from "lucide-react";
-import PdfGenerator from "../_components/pdf-generator";
+import PdfGenerator from "../../[propertyId]/documentFromTemplate/_components/pdf-generator";
 import { ConfirmModal } from "@/components/modals/confirm-modal";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -28,13 +28,12 @@ const api = {
   },
 };
 
-const DocumentFromTemplatePage = ({
+const AuthorizationDocumentPage = ({
   params,
 }: {
-  params: { documentId: string; propertyId: string };
+  params: { documentId: string };
 }) => {
   const documentId = params.documentId;
-  const propertyId = params.propertyId;
   const router = useRouter();
 
   const [documentFromTemplate, setDocumentFromTemplate] =
@@ -54,7 +53,7 @@ const DocumentFromTemplatePage = ({
     try {
       await api.deleteDocument(documentId);
       toast.success("Documento eliminado");
-      router.push(`/documentos/${propertyId}`);
+      router.push(`/documentos`);
     } catch (error) {
       toast.error("Error al eliminar el documento");
     }
@@ -63,16 +62,22 @@ const DocumentFromTemplatePage = ({
 
   return (
     <div className="m-4">
-      <Link href={`/documentos/${propertyId}`}>
+      <Link href={`/documentos`}>
         <Button size="sm">
           <ArrowLeft />
-          Volver a propiedad
+          Volver a Documentos
         </Button>
       </Link>
+
       <div className="flex justify-between pr-10">
-        <h1 className="font-bold text-2xl m-5">
-          Visualizar documento
-        </h1>
+        <div>
+          <h2 className=" text-2xl m-5">
+            Documento de Autorización
+          </h2>
+          <h1 className="font-bold text-2xl m-5">
+            {documentFromTemplate?.title || "Sin título"}
+          </h1>
+        </div>
         <ConfirmModal onConfirm={() => onDelete(documentId)}>
           <Button size="sm" disabled={isLoading}>
             <Trash className="h-4 w-4" />
@@ -109,4 +114,4 @@ const DocumentFromTemplatePage = ({
   );
 };
 
-export default DocumentFromTemplatePage;
+export default AuthorizationDocumentPage;
